@@ -9,17 +9,6 @@ CERT_DIR="/var/www/ssl"
 preStart() {
     removeCruft
     writeConfiguration
-    checkAndMoveConfiguration
-}
-
-preStop() {
-    if [ -f /run/haproxy.pid ]; then
-        ST_PIDS="-sf $(cat /run/haproxy.pid)"
-    else
-        ST_PIDS=""
-    fi
-
-    nl-qdisc-add --dev=lo --parent=1:4 --id=40: --update plug--release-indefinite &> /dev/null
 }
 
 # Render HAProxy configuration template using values from Consul,
@@ -31,21 +20,21 @@ onChange() {
 #    fi
 #    export SSL_READY
 
+    writeConfiguration
+
     if [ -f /run/haproxy.pid ]; then
-        writeConfiguration
-        checkAndMoveConfiguration
-
-        nl-qdisc-add --dev=lo --parent=1:4 --id=40: --update plug --buffer &> /dev/null
-        echo "Reloading HAProxy configuration"
-
-        /usr/local/sbin/haproxy \
-            -D \
-            -p /run/haproxy.pid \
-            -f /usr/local/etc/haproxy/haproxy.cfg \
-            -sf $(cat /run/haproxy.pid)
-
-        nl-qdisc-add --dev=lo --parent=1:4 --id=40: --update plug--release-indefinite &> /dev/null
+        SF_PIDS="-sf $(cat /run/haproxy.pid)"
+    else
+        SF_PIDS=""
     fi
+
+    echo "Reloading HAProxy configuration"
+
+    /usr/local/sbin/haproxy \
+        -D \
+        -p /run/haproxy.pid \
+        -f /usr/local/etc/haproxy/haproxy.cfg \
+        ${SF_PIDS}
 }
 
 writeConfiguration() {
@@ -55,17 +44,7 @@ writeConfiguration() {
         -once \
         -dedup \
         -consul ${CONSUL}:8500 \
-        -template "/usr/local/etc/haproxy/haproxy.cfg.ctmpl:/tmp/haproxy.cfg"
-}
-
-checkAndMoveConfiguration() {
-    if [[ "$(/usr/local/sbin/haproxy -c -f /tmp/haproxy.cfg)" ]]; then
-        echo "HAProxy configuration is valid - moving to /usr/local/etc/haproxy/haproxy.cfg"
-        mv /tmp/haproxy.cfg /usr/local/etc/haproxy/haproxy.cfg
-    else
-        >&2 echo "HAProxy configuration is invalid"
-        return 1
-    fi
+        -template "/usr/local/etc/haproxy/haproxy.cfg.ctmpl:/usr/local/etc/haproxy/haproxy.cfg"
 }
 
 removeCruft() {
@@ -77,7 +56,6 @@ removeCruft() {
 
 help() {
     echo "Usage: ./reload.sh preStart  => first-run configuration for HAProxy"
-    echo "       ./reload.sh preStop   => runs pre-stop operations for HAProxy"
     echo "       ./reload.sh onChange  => [default] update HAProxy config on upstream changes"
 }
 

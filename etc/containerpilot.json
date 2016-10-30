@@ -1,7 +1,6 @@
 {
   "consul": "{{ if .CONSUL_AGENT }}localhost{{ else }}{{ if .CONSUL }}{{ .CONSUL }}{{ else }}consul{{ end }}{{ end }}:8500",
   "preStart": "/usr/local/bin/reload.sh preStart",
-  "preStop": "/usr/local/bin/reload.sh preStop",
   "logging": {"level": "DEBUG"},
   "services": [
     {
