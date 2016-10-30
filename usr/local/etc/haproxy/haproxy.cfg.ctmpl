@@ -1,0 +1,59 @@
+# This is an example HAProxy configuration template file.
+# Adjust the values below as required for your application.
+
+global
+    description HAProxy on autopilot
+    user haproxy
+    group haproxy
+    log 127.0.0.1:514 syslog info
+    maxconn 4096
+
+defaults
+    log     global
+    mode    http
+    option  httplog
+    option  dontlognull
+    option  forwardfor
+    option  tcp-smart-accept
+    option  tcp-smart-connect
+    option  http-keep-alive
+    option  http-server-close
+
+    timeout http-request 10s
+    timeout client       10s
+    timeout connect      2s
+    timeout server       15s
+
+    retries 3
+
+    # Make sure there is no message outputted to browsers when they time out
+    errorfile 408 /dev/null
+
+frontend http-in
+    bind *:80
+
+    # Don't let the client set this
+    reqidel ^X-Forwarded-For:.*$
+    reqidel ^X-Real-IP:.*$
+
+    reqadd X-Forwarded-Proto:\ http
+
+    use_backend autopilot
+
+# internal monitoring access (unlimited)
+frontend private_monitoring
+    bind *:8888
+    stats enable
+    stats uri     /
+
+backend autopilot
+    balance roundrobin
+
+    http-request set-header X-Forwarded-Port %[dst_port]
+    http-request add-header X-Forwarded-Proto https if { ssl_fc }
+
+{{ $backend := env "BACKEND" }}{{ if service $backend }}
+    # write the address:port pairs for each healthy backend instance{{range service $backend }}
+    server {{.Name}} {{.Address}}:{{.Port}}
+  {{end}}
+{{ end }}

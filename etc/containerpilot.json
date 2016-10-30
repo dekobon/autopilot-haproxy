@@ -1,0 +1,41 @@
+{
+  "consul": "{{ if .CONSUL_AGENT }}localhost{{ else }}{{ if .CONSUL }}{{ .CONSUL }}{{ else }}consul{{ end }}{{ end }}:8500",
+  "preStart": "/usr/local/bin/reload.sh preStart",
+  "preStop": "/usr/local/bin/reload.sh preStop",
+  "logging": {"level": "DEBUG"},
+  "services": [
+    {
+      "name": "haproxy",
+      "port": 80,
+      "health": "/usr/bin/curl --fail --silent --show-error --output /dev/null http://localhost:8888",
+      "poll": 10,
+      "ttl": 25,
+      "interfaces": ["eth0"]
+    }
+  ],
+  "backends": [
+    {
+      "name": "{{ .BACKEND }}",
+      "poll": 7,
+      "onChange": "/usr/local/bin/reload.sh"
+    }
+  ],
+  "coprocesses": [{{ if .CONSUL_AGENT }}
+    {
+      "command": ["/usr/local/bin/consul", "agent",
+        "-data-dir=/var/lib/consul",
+        "-config-dir=/etc/consul",
+        "-rejoin",
+        "-retry-join", "{{ if .CONSUL }}{{ .CONSUL }}{{ else }}consul{{ end }}",
+        "-retry-max", "10",
+        "-retry-interval", "10s"],
+      "restarts": "unlimited"
+    },{{ end }}
+    {
+      "command": ["/usr/sbin/syslog-ng",
+        "--no-caps",
+        "--worker-threads=1",
+        "-F"]
+    }
+  ]
+}
