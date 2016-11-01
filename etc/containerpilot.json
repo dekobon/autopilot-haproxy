@@ -31,6 +31,8 @@
       "restarts": "unlimited"
     },{{ end }}
     {
+      "name": "syslog",
+      "restarts": "unlimited",
       "command": ["/usr/sbin/syslog-ng",
         "--no-caps",
         "--worker-threads=1",

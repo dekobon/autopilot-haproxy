@@ -21,20 +21,7 @@ onChange() {
 #    export SSL_READY
 
     writeConfiguration
-
-    if [ -f /run/haproxy.pid ]; then
-        SF_PIDS="-sf $(cat /run/haproxy.pid)"
-    else
-        SF_PIDS=""
-    fi
-
-    echo "Reloading HAProxy configuration"
-
-    /usr/local/sbin/haproxy \
-        -D \
-        -p /run/haproxy.pid \
-        -f /usr/local/etc/haproxy/haproxy.cfg \
-        ${SF_PIDS}
+    kill -s SIGHUP $(pgrep -f '^/usr/local/sbin/haproxy-systemd-wrapper')
 }
 
 writeConfiguration() {
