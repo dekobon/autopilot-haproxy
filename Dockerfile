@@ -2,7 +2,7 @@
 FROM haproxy:latest
 
 RUN apt-get update && \
-    apt-get install --no-install-recommends -qy bc curl unzip ca-certificates syslog-ng && \
+    apt-get install --no-install-recommends -qy hatop curl unzip ca-certificates syslog-ng && \
     rm -rf /var/lib/apt/lists/*
 
 # Install Consul
