@@ -7,6 +7,8 @@ global
     group haproxy
     log 127.0.0.1:514 syslog info
     maxconn 4096
+    stats socket /var/run/haproxy.sock mode 600 level admin
+    stats timeout 2m #Wait up to 2 minutes for input
 
 defaults
     log     global
@@ -39,12 +41,6 @@ frontend http-in
     reqadd X-Forwarded-Proto:\ http
 
     use_backend autopilot
-
-# internal monitoring access (unlimited)
-frontend private_monitoring
-    bind *:9090
-    stats enable
-    stats uri     /
 
 backend autopilot
     balance roundrobin
