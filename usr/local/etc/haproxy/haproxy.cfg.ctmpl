@@ -42,7 +42,7 @@ frontend http-in
 
 # internal monitoring access (unlimited)
 frontend private_monitoring
-    bind *:8888
+    bind *:9090
     stats enable
     stats uri     /
 

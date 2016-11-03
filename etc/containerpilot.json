@@ -6,7 +6,7 @@
     {
       "name": "haproxy",
       "port": 80,
-      "health": "/usr/bin/curl --fail --silent --show-error --output /dev/null http://localhost:8888",
+      "health": "/usr/bin/curl --fail --silent --show-error --output /dev/null http://localhost:9090",
       "poll": 10,
       "ttl": 25,
       "interfaces": ["eth0"]
