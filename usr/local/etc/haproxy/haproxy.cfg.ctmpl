@@ -54,6 +54,6 @@ backend autopilot
 
 {{ $backend := env "BACKEND" }}{{ if service $backend }}
     # write the address:port pairs for each healthy backend instance{{range service $backend }}
-    server {{.Name}}-{{.ID}} {{.Address}}:{{.Port}}
+    server {{.ID}} {{.Address}}:{{.Port}}
   {{end}}
 {{ end }}
