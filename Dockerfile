@@ -1,4 +1,4 @@
-# A minimal Nginx container including ContainerPilot and a simple virtualhost config
+# A minimal HAProxy container including ContainerPilot and a simple virtualhost config
 FROM haproxy:latest
 
 RUN apt-get update && \
