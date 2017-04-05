@@ -16,7 +16,7 @@ haproxy:
         - 443
         - 9090 # so we can see telemetry
     labels:
-        - triton.cns.services=nginx
+        - triton.cns.services=haproxy
 
 example:
     image: autopilotpattern/nginx-example-app
